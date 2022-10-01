@@ -1,5 +1,6 @@
-window width 1000
-background r 0 g 0 b 0
-
-//make a circle
-circle height 100 x 300 y 200
+rect width 100 height 100 x 400 y 600
+refresh
+sleep
+background r 255 g 0 b 0
+refresh
+sleep

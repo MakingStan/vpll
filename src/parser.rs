@@ -37,8 +37,8 @@ pub fn convert_vpll_to_json(code: String) -> JsonValue
                     println!("🟨 WARNING: Element called \"{}\" could not be found in the config file. It has been ignored. 🟨", element);
 
                     /*
-                        Handle for loops, sleeps etc..
-                     */
+                        Handle for loops etc..
+                    */
                 }
                 else
                 {

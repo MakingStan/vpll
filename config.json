@@ -14,25 +14,105 @@
 
   "background":
   {
+    "r": "0",
+    "g": "0",
+    "b": "0"
+  },
+
+  "circle":
+  {
+    "type": "circle",
+    "x": "0",
+    "y": "0",
+    "width": "100",
+    "height": "100",
     "r": "255",
     "g": "255",
     "b": "255"
   },
 
-  "circle":
-  {
-    "x": "0",
-    "y": "0",
-    "width": "100",
-    "height": "100"
-  },
-
   "rectangle":
   {
+    "type": "rectangle",
     "x": "0",
     "y": "0",
     "width": "100",
-    "height": "100"
+    "height": "100",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+
+  "fill_rectangle":
+  {
+    "type": "fill_rectangle",
+    "x": "0",
+    "y": "0",
+    "width": "100",
+    "height": "100",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+
+  "rect":
+  {
+    "type": "rectangle",
+    "x": "0",
+    "y": "0",
+    "width": "100",
+    "height": "100",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+
+  "fill_rect":
+  {
+    "type": "fill_rectangle",
+    "x": "0",
+    "y": "0",
+    "width": "100",
+    "height": "100",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+
+  "sleep":
+  {
+    "type": "sleep",
+    "seconds": "1",
+    "nanoseconds": "0",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+  "refresh":
+  {
+    "type": "refresh",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+  "clear":
+  {
+    "type": "clear",
+    "r": "255",
+    "g": "255",
+    "b": "255"
+  },
+
+  "line":
+  {
+    "type": "line",
+    "x1": "0",
+    "y1": "0",
+    "x2": "0",
+    "y2": "0",
+    "r": "255",
+    "g": "255",
+    "b": "255"
   }
 
 }
