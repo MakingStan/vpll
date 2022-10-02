@@ -82,7 +82,7 @@ pub fn start_sdl2(translated_json: JsonValue)
                         element["nanoseconds"].as_str().unwrap().parse::<u32>().unwrap()
                     ));
                 }
-                "refresh"  => {
+                "present" => {
                     canvas.present();
                 }
                 "clear"  => {
