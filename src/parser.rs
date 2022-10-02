@@ -122,32 +122,6 @@ fn add_non_permanent_element(line_splitted: Vec<&str>, config_json: JsonValue) -
             break;
         }
 
-        /*if line_splitted[attribute_index] == "execute"
-        {
-            // Call this method for the amount of lines there are in here.
-            for count in attribute_index..line_splitted.len()
-            {
-                println!("line splitted at count: {}", line_splitted[count]);
-                if line_splitted[count] == "end"
-                {
-                    attribute_index = count;
-                    break;
-                }
-
-                let mut new_line_splitted: Vec<&str> = vec!();
-                new_line_splitted.append(&mut line_splitted.clone());
-
-                println!("{:?}", new_line_splitted);
-                json_element[line_splitted[attribute_index]]["execute"]
-                    .push(
-                        add_non_permanent_element(
-                            new_line_splitted,
-                            config_json.clone())
-                    )
-                    .expect("Could not push execute data to the loop array.");
-            }
-        }
-         */
         json_element[line_splitted[attribute_index]] = line_splitted[attribute_index + 1].into();
     }
     return json_element;
