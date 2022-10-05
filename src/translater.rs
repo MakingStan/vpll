@@ -5,6 +5,7 @@ use std::time::Duration;
 use json::JsonValue;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::libc::glob;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 
@@ -26,21 +27,17 @@ pub fn start_sdl2(translated_json: JsonValue)
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
+
+    let mut global_value = 0;
+    let mut first_time:bool = true;
     'running: loop {
         //background
         canvas.set_draw_color(Color::RGB(r, g, b));
         canvas.clear();
 
 
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    break 'running
-                },
-                _ => {}
-            }
-        }
+
+
         // The rest of the game loop goes here...
 
         for element in translated_json["elements"].members()
@@ -50,37 +47,69 @@ pub fn start_sdl2(translated_json: JsonValue)
             match element["type"].as_str().unwrap() {
                 "rectangle" => {
                     canvas.draw_rect(Rect::new(
-                        element["x"].as_str().unwrap().parse::<i32>().unwrap(),
-                        element["y"].as_str().unwrap().parse::<i32>().unwrap(),
-                        element["width"].as_str().unwrap().parse::<u32>().unwrap(),
-                        element["height"].as_str().unwrap().parse::<u32>().unwrap()))
+                        to_i32(element["x"].to_string(), global_value as i32),
+                        to_i32(element["y"].to_string(), global_value as i32),
+                        to_i32(element["width"].to_string(), global_value as i32) as u32,
+                        to_i32(element["height"].to_string(), global_value as i32) as u32))
                         .expect("Could not make rectangle.");
                 }
                 "fill_rectangle" => {
                     canvas.fill_rect(Rect::new(
-                        element["x"].as_str().unwrap().parse::<i32>().unwrap(),
-                        element["y"].as_str().unwrap().parse::<i32>().unwrap(),
-                        element["width"].as_str().unwrap().parse::<u32>().unwrap(),
-                        element["height"].as_str().unwrap().parse::<u32>().unwrap()))
+                        to_i32(element["x"].to_string(), global_value as i32),
+                        to_i32(element["y"].to_string(), global_value as i32),
+                        to_i32(element["width"].to_string(), global_value as i32) as u32,
+                        to_i32(element["height"].to_string(), global_value as i32) as u32))
                         .expect("Could not make rectangle.");
                 }
                 "line"  => {
                     canvas.draw_line(
                         Point::new(
-                            element["x1"].as_str().unwrap().parse::<i32>().unwrap(),
-                            element["y1"].as_str().unwrap().parse::<i32>().unwrap()
+                            to_i32(element["x1"].to_string(), global_value as i32),
+                            to_i32(element["y1"].to_string(), global_value as i32)
                         ),
                         Point::new(
-                            element["x2"].as_str().unwrap().parse::<i32>().unwrap(),
-                            element["y2"].as_str().unwrap().parse::<i32>().unwrap()
+                            to_i32(element["x2"].to_string(), global_value as i32),
+                            to_i32(element["y2"].to_string(), global_value as i32)
                         ))
                         .expect("Could not draw a line.");
+                }
+                "var" => {
+                    if first_time
+                    {
+                        global_value = to_i32(element["value"].to_string(), global_value as i32);
+                        first_time = false;
+                    }
+                    else
+                    {
+                        global_value += to_i32(element["increment"].to_string(), global_value as i32);
+                    }
+                }
+                "circle"  => {
+                    let radius = if element["radius"].as_str().unwrap().parse::<f32>().is_err() {
+                        global_value as f32
+                    }
+                    else {
+                        element["radius"].as_str().unwrap().parse::<f32>().unwrap()
+                    };
+                    let x_offset = to_f32(element["x"].to_string(), global_value as f32);
+                    let y_offset = to_f32(element["y"].to_string(), global_value as f32);
+
+                    for i in 0..6300 {
+                        let i = (i as f32) * 0.001;
+
+                        let x = (i).cos()*radius+x_offset;
+                        let y = (i).sin()*radius+y_offset;
+
+                        canvas.draw_point(Point::new(x as i32, y as i32)).expect("Could not draw point for the cirlce");
+                    }
                 }
                 "sleep"  => {
                     thread::sleep(Duration::new(
                         element["seconds"].as_str().unwrap().parse::<u64>().unwrap(),
                         element["nanoseconds"].as_str().unwrap().parse::<u32>().unwrap()
                     ));
+                    canvas.set_draw_color(Color::RGB(r, g, b));
+                    canvas.clear();
                 }
                 "present" => {
                     canvas.present();
@@ -88,9 +117,20 @@ pub fn start_sdl2(translated_json: JsonValue)
                 "clear"  => {
                     canvas.set_draw_color(Color::RGB(r, g, b));
                     canvas.clear();
-                    canvas.present();
                 }
                 _ => {}
+            }
+
+
+            //Check for polling events to be a bit more responsive
+            for event in event_pump.poll_iter() {
+                match event {
+                    Event::Quit {..} |
+                    Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                        break 'running
+                    },
+                    _ => {}
+                }
             }
         }
 
@@ -98,4 +138,33 @@ pub fn start_sdl2(translated_json: JsonValue)
         canvas.present();
         thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
+}
+
+fn to_i32(value: String, global_value: i32) -> i32
+{
+     let return_value =  if value.parse::<i32>().is_err() {
+        global_value
+    }
+    else {
+        value.parse::<i32>().unwrap()
+    };
+
+    return return_value;
+}
+
+fn to_f32(value: String, global_value: f32) -> f32
+{
+    let return_value =  if value.parse::<f32>().is_err() {
+        global_value
+    }
+    else {
+        value.parse::<f32>().unwrap()
+    };
+
+    return return_value;
+}
+
+fn to_u32(value: String) -> u32
+{
+    return value.parse::<u32>().unwrap();
 }

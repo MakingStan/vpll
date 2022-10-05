@@ -1,7 +1,19 @@
 use std::fs;
 use std::thread::current;
 use json::JsonValue;
+use lazy_static::lazy_static;
+use sdl2::libc::getline;
+use std::sync::Mutex;
+use eval::{eval};
 
+
+
+struct GlobalValueStruct {
+    value: String
+}
+lazy_static! {
+    static ref global_value: Mutex<GlobalValueStruct> = Mutex::new(GlobalValueStruct { value: String::from("0")});
+}
 pub fn convert_vpll_to_json(code: String) -> JsonValue
 {
     let mut json_value = JsonValue::new_object();
@@ -35,33 +47,6 @@ pub fn convert_vpll_to_json(code: String) -> JsonValue
                 {
                     //it is null, notify the user of it
                     println!("🟨 WARNING: Element called \"{}\" could not be found in the config file. It has been ignored. 🟨", element);
-
-                    /*
-                        Handle for loops etc..
-
-                    match element {
-                        "count" => {
-                            let mut json_element = JsonValue::new_object();
-                            let json_type = line_splitted[0];
-
-                            //Give the element all of the required fields
-                            json_element = config_json[json_type].clone().into();
-
-                            for attribute_index in (1..line_splitted.len()-1).rev().step_by(2)
-                            {
-                                if json_element[line_splitted[attribute_index]] == "//"
-                                {
-                                    //ignore
-                                    break;
-                                }
-
-                                json_element[line_splitted[attribute_index]] = line_splitted[attribute_index + 1].into();
-                            }
-
-                            json_value[json_type] = json_element;
-                        }
-                        _ => {}
-                    }*/
                 }
                 else
                 {
@@ -113,6 +98,7 @@ fn add_non_permanent_element(line_splitted: Vec<&str>, config_json: JsonValue) -
     //Give the element all of the required fields
     json_element = config_json[json_type].clone().into();
 
+
     //update the fields
     for mut attribute_index in (1..line_splitted.len()-1).rev().step_by(2)
     {
@@ -122,7 +108,38 @@ fn add_non_permanent_element(line_splitted: Vec<&str>, config_json: JsonValue) -
             break;
         }
 
-        json_element[line_splitted[attribute_index]] = line_splitted[attribute_index + 1].into();
+        if json_type == "var" && line_splitted[attribute_index] == "value"
+        {
+            if line_splitted[attribute_index + 1].to_string().starts_with("value")
+            {
+                let mut add_value = eval(line_splitted[attribute_index + 1].to_string()[6..].to_string().as_str())
+                    .unwrap()
+                    .as_i64().unwrap();
+
+
+                println!("increment value: {}", add_value);
+                json_element["increment"] = add_value.into();
+
+                add_value+=eval(global_value.lock().unwrap().value.clone().as_str()).unwrap().as_i64().unwrap();
+
+
+                global_value.lock().unwrap().value = add_value.to_string();
+
+            }
+            else {
+                global_value.lock().unwrap().value = eval(line_splitted[attribute_index + 1].to_string().as_str())
+                    .unwrap()
+                    .to_string();
+            }
+
+            println!("{}", global_value.lock().unwrap().value.clone());
+            json_element[line_splitted[attribute_index]] = global_value.lock().unwrap().value.clone().into();
+        }
+        else {
+            json_element[line_splitted[attribute_index]] = line_splitted[attribute_index + 1].into();
+        }
     }
     return json_element;
 }
+
+

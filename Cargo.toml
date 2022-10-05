@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 sdl2 = "0.35.2"
 json = "0.12.4"
+lazy_static = "1.4.0"
+eval = "0.4.3"
